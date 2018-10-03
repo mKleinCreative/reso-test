@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import withStyles from '@material-ui/core/styles/withStyles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
@@ -8,24 +7,32 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Menu from '@material-ui/core/Menu';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import MenuItem from '@material-ui/core/MenuItem';
-import Typography from '@material-ui/core/Typography';
 import Schedule from './components/Schedule';
 
 const styles = theme => ({
   appBar: {
-    position: 'relative',
+    width: 'auto',
+    minWidth: '24rem',
+    backgroundColor: '#333',
+  },
+  logo__img: {
+    width: '5rem'
   },
   layout: {
     width: 'auto',
-    marginLeft: theme.spacing.unit * 2,
+    marginLeft: '1rem',
     marginRight: theme.spacing.unit * 2,
     [theme.breakpoints.up(600 + theme.spacing.unit * 2 * 2)]: {
       width: 600,
       marginLeft: 'auto',
       marginRight: 'auto',
     },
+    fontFamily: "'Maven Pro', Verdana, sans-serif",
+    color: '#757575',
   },
-
+  app__menu: {
+    marginLeft: '14rem',
+  }
 })
 
 class App extends Component {
@@ -49,12 +56,15 @@ class App extends Component {
     return (
       <React.Fragment>
         <CssBaseline />
-        <AppBar position="absolute" color="default" className={classes.appBar}>
+        <AppBar position="relative" color="default" className={classes.appBar}>
           <Toolbar>
-            <Typography variant="title" color="inherit" noWrap>
-              Company name
-              </Typography>
+            <img 
+              className={classes.logo__img}
+              alt="logo"
+              src="https://res.cloudinary.com/hqa44lo9i/image/upload/v1534965615/logoNew2Pink_e0ulex.png"
+            />
             <IconButton
+              className={classes.app__menu}
               aria-label="More"
               aria-owns={open ? 'option-menu' : null}
               aria-haspopup="true"

@@ -1,5 +1,7 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import TextField from '@material-ui/core/TextField';
 import { withStyles } from '@material-ui/core/styles';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -9,24 +11,52 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
-import MenuItem from '@material-ui/core/MenuItem';
+import DeleteIcon from '@material-ui/icons/Delete';
+import IconButton from '@material-ui/core/IconButton';
+import { Hidden, List } from '@material-ui/core';
 
 const styles = theme => ({
+  root: {
+    width: '100%',
+    maxWidth: 360,
+  },
   container: {
-    marginLeft: theme.spacing.unit,
+    marginLeft: '2rem',
+    marginTop: '2rem',
     display: 'flex',
     flexWrap: 'wrap',
+    overflow: Hidden,
   },
   textField: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-    width: 150,
+    marginLeft: '1.5rem',
+    marginBottom: '2rem',
+    width: '8.15rem',
   },
+  formControl: {
+    marginBottom: '3rem',
+  },
+  dateList: {
+    display: 'flex',
+    justify: 'space-between',
+    border: '1px black solid',
+    width: '18rem',
+    height: '5rem',
+    overflow: 'scroll',
+    marginBottom: '3rem',
+  },
+  dateList__item: {
+    display: "flex",
+    paddingLeft: '0',
+    width: '100%',
+  }
 });
 
 class Schedule extends React.Component {
   state = {
-    days: {
+    open: false,
+    startDateToAdd: "",
+    endDateToAdd: "",
+    daysForDates: {
       startTime: ["12:00", "am"],
       endTime: ["12:00", "pm"],
       timezone: "pst",
@@ -38,22 +68,94 @@ class Schedule extends React.Component {
       friday: Boolean(false),
       saturday: Boolean(false),
     },
-    dates: {
-      0: {
-        startDate: "2018-10-01",
-        endDate: "2018-10-01"
+    dates: [
+      {
+        startDate: "2018-12-12",
+        endDate: "2018-12-20",
+        scheduledTimes: {
+          startTime: ["12:00", "am"],
+          endTime: ["12:00", "pm"],
+          timezone: "pst",
+          sunday: Boolean(false),
+          monday: Boolean(false),
+          tuesday: Boolean(false),
+          wednesday: Boolean(false),
+          thursday: Boolean(false),
+          friday: Boolean(false),
+          saturday: Boolean(false),
+        }
       }
-    }
+    ]
   };
 
   handleChange = name => event => {
+    const target = event.target
+    const value = target.type === 'checkbox' ?
+      target.checked : target.value;
     this.setState({
-      [name]: event.target.value,
+      daysForDates: {
+        ...this.state.daysForDates,
+        [name]: value
+      },
     });
   };
 
+  handleDateAdd = () => event => {
+    event.target.id === "startDate" ?
+      this.setState({
+        startDateToAdd: event.target.value
+      })
+      :
+      this.setState({
+        endDateToAdd: event.target.value
+      });
+  };
+
+  handleSave = async () => {
+    await this.setState({
+      dates: [
+        ...this.state.dates,
+        {
+          startDate: this.state.startDateToAdd,
+          endDate: this.state.endDateToAdd,
+          scheduledTimes: this.state.daysForDates
+        }
+      ]
+    })
+    console.log(this.state)
+  };
+
+  handleDateClick = () => {
+    this.setState(state => ({ ...this.state, open: !state.open }))
+  }
+
   render() {
     const { classes } = this.props;
+
+    const listDates = this.state.dates.map((date, i) => {
+      return (
+        <Grid container key={i}>
+          <ListItem
+            disableGutters={true}
+            dense
+            className={classes.dateList__item}
+            button
+            onClick={this.handleDateClick}
+          >
+            <ListItemText
+              inset
+              primary={
+                `${date.startDate.toString()} until ${'\n'}
+               ${date.endDate.toString()}`
+              }
+            />
+            <IconButton aria-label="Delete">
+              <DeleteIcon />
+            </IconButton>
+          </ListItem>
+        </Grid>
+      )
+    })
     return (
       <React.Fragment>
         <form className={classes.container} >
@@ -64,12 +166,16 @@ class Schedule extends React.Component {
                 id="start-time"
                 name="startTime"
                 label="Start"
-                value={this.state.days.startTime[0]}
                 type="time"
+                InputLabelProps={{
+                  shrink: true,
+                }}
                 inputProps={{
                   step: 300
                 }}
-                onChange={this.handleChange('startTime')}
+                onChange={
+                  this.handleChange('startTime')
+                }
                 margin="dense"
               />
             </Grid>
@@ -79,10 +185,14 @@ class Schedule extends React.Component {
                 id="end-time"
                 name="endTime"
                 label="End"
-                value={this.state.days.endTime[0]}
                 type="time"
-                onChange={this.handleChange('endTime')}
+                onChange={
+                  this.handleChange('endTime')
+                }
                 margin="dense"
+                InputLabelProps={{
+                  shrink: true,
+                }}
                 inputProps={{
                   step: 300
                 }}
@@ -93,8 +203,11 @@ class Schedule extends React.Component {
                 id="time-zone"
                 name="timeZone"
                 label="Timezone"
-                value={this.state.days.timezone}
-                onChange={this.handleChange('timezone')}
+                type="text"
+                value={this.state.daysForDates.timezone}
+                onChange={
+                  this.handleChange('timezone')
+                }
                 margin="dense"
               />
             </Grid>
@@ -103,30 +216,41 @@ class Schedule extends React.Component {
               className={classes.formControl}
             >
               <FormLabel component="legend">Every...</FormLabel>
+              <FormHelperText>Select Days active</FormHelperText>
               <FormGroup row>
-
                 <FormControlLabel
                   control={
                     <Checkbox
-                      onChange={this.handleChange('monday')}
-                      value={this.state.days.monday} />
+                      name="monday"
+                      check={this.state.daysForDates.monday ? "true" : undefined}
+                      onChange={
+                        this.handleChange('monday')
+                      }
+                      value={'monday'} />
                   }
                   label="Monday"
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
-                      onChange={this.handleChange('wednesday')}
-                      value={this.state.days.wednesday} />
+                      name="wednesday"
+                      check={this.state.daysForDates.wednesday ? "true" : undefined}
+                      onChange={
+                        this.handleChange('wednesday')
+                      }
+                      value={'wednesday'} />
                   }
                   label="Wednesday"
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
-
-                      onChange={this.handleChange('friday')}
-                      value={this.state.days.friday}
+                      name="friday"
+                      check={this.state.daysForDates.friday ? "true" : undefined}
+                      onChange={
+                        this.handleChange('friday')
+                      }
+                      value={'friday'}
                     />
                   }
                   label="Friday"
@@ -136,8 +260,12 @@ class Schedule extends React.Component {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      onChange={this.handleChange('tuesday')}
-                      value={this.state.days.tuesday}
+                      name="tuesday"
+                      check={this.state.daysForDates.tuesday ? "true" : undefined}
+                      onChange={
+                        this.handleChange('tuesday')
+                      }
+                      value={'tuesday'}
                     />
                   }
                   label="Tuesday"
@@ -145,8 +273,12 @@ class Schedule extends React.Component {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      onChange={this.handleChange('thursday')}
-                      value={this.state.days.thursday} />
+                      name="thursday"
+                      checked={this.state.daysForDates.thursday ? true : undefined}
+                      onChange={
+                        this.handleChange('thursday')
+                      }
+                      value={'thursday'} />
                   }
                   label="Thursday"
                 />
@@ -155,8 +287,12 @@ class Schedule extends React.Component {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      onChange={this.handleChange('saturday')}
-                      value={this.state.days.saturday}
+                      name="saturday"
+                      check={this.state.daysForDates.saturday ? "true" : undefined}
+                      onChange={
+                        this.handleChange('saturday')
+                      }
+                      value={'saturday'}
                     />
                   }
                   label="Saturday"
@@ -164,49 +300,82 @@ class Schedule extends React.Component {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      onChange={this.handleChange('sunday')}
-                      value={this.state.days.sunday} />
+                      name="sunday"
+                      check={this.state.daysForDates.sunday ? "true" : undefined}
+                      onChange={
+                        this.handleChange('sunday')
+                      }
+                      value={'sunday'} />
                   }
                   label="Sunday"
                 />
               </FormGroup>
-              <FormHelperText>Select Days active</FormHelperText>
             </FormControl>
-            <Grid item xs={6}>
-              <TextField
-                id="startDate"
-                label="Start Date"
-                type="date"
-                className={classes.textField}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                value={this.state.dates[0].startDate}
-              />
+            <Grid container justify="space-around">
+              <Grid item xs={4}>
+                <TextField
+                  id="startDate"
+                  label="Start Date"
+                  type="date"
+                  fullWidth
+                  onChange={this.handleDateAdd('dates')}
+                  className={classes.textField}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  value={this.state.startDateToAdd}
+                />
+              </Grid>
+              <Grid item xs={7}>
+                <TextField
+                  id="endDate"
+                  label="End Date"
+                  type="date"
+                  fullWidth
+                  onChange={this.handleDateAdd('dates')}
+                  className={classes.textField}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  value={this.state.endDateToAdd}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={6}>
-              <TextField
-                id="endDate"
-                label="End Date"
-                type="date"
-                className={classes.textField}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                value={this.state.dates[0].endDate}
-              />
+            <List dense className={classes.dateList}>
+              {listDates}
+            </List>
+            <Grid container justify='space-around'>
+              <Grid
+                item
+                xs={5}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="large"
+                  className={classes.button}
+                >
+                  Cancel
+              </Button>
+              </Grid>
+              <Grid
+                item
+                xs={6}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="large"
+                  className={classes.button}
+                  onClick={this.handleSave}
+                >
+                  Save
+              </Button>
+              </Grid>
             </Grid>
           </Grid>
-          <Button variant="outlined" color="primary" className={classes.button}>
-            Cancel
-      </Button>
-          <Button variant="outlined" color="secondary" className={classes.button}>
-            Save
-      </Button>
         </form>
       </React.Fragment >
     )
-  }
-};
+  };
+}
 
 export default withStyles(styles)(Schedule);
